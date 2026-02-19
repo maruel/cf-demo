@@ -32,6 +32,12 @@
 	},
 	"compatibility_flags": [
 		"nodejs_compat"
+	],
+	"routes": [
+		{
+			"pattern": "demo.caic.xyz",
+			"custom_domain": true
+		}
 	]
 	/**
 	 * Smart Placement

@@ -13,11 +13,12 @@ For all limits and quotas, retrieve from the product's `/platform/limits/` page.
 
 | Command | Purpose |
 |---------|---------|
-| `npx wrangler dev` | Local development |
-| `npx wrangler deploy` | Deploy to Cloudflare |
-| `npx wrangler types` | Generate TypeScript types |
+| `pnpm install` | Install dependencies |
+| `pnpm dev` | Local development server |
+| `pnpm run deploy` | Deploy to Cloudflare |
+| `pnpm cf-typegen` | Generate TypeScript types from bindings |
 
-Run `wrangler types` after changing bindings in wrangler.jsonc.
+Run `pnpm cf-typegen` after changing bindings in wrangler.jsonc.
 
 ## Node.js Compatibility
 
