@@ -1,20 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Hello, World!</title>
-	</head>
-	<body>
-		<h1 id="heading"></h1>
-		<p>This page comes from a static asset stored at `public/index.html` as configured in `wrangler.jsonc`.</p>
-		<script>
-			fetch('/message')
-				.then((resp) => resp.text())
-				.then((text) => {
-					const h1 = document.getElementById('heading');
-					h1.textContent = text;
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Edge Chat</title>
+	<style>
+		*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			background: #f5f5f5;
+			color: #1a1a1a;
+			height: 100dvh;
+			display: flex;
+			flex-direction: column;
+		}
+
+		header {
+			padding: 16px 24px;
+			background: #fff;
+			border-bottom: 1px solid #e0e0e0;
+			font-size: 18px;
+			font-weight: 600;
+			letter-spacing: -0.02em;
+		}
+
+		header span { color: #888; font-weight: 400; font-size: 14px; margin-left: 8px; }
+
+		#messages {
+			flex: 1;
+			overflow-y: auto;
+			padding: 16px 24px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.msg {
+			background: #fff;
+			border-radius: 8px;
+			padding: 10px 14px;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+			max-width: 600px;
+			animation: fadeIn 0.2s ease-out;
+		}
+
+		.msg .meta {
+			font-size: 13px;
+			color: #888;
+			margin-bottom: 2px;
+		}
+
+		.msg .meta strong {
+			color: #1a1a1a;
+			font-weight: 600;
+		}
+
+		.msg .body {
+			font-size: 15px;
+			line-height: 1.4;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(4px); }
+			to   { opacity: 1; transform: translateY(0); }
+		}
+
+		#compose {
+			padding: 12px 24px;
+			background: #fff;
+			border-top: 1px solid #e0e0e0;
+			display: flex;
+			gap: 8px;
+			align-items: center;
+		}
+
+		#compose input {
+			font-size: 15px;
+			padding: 8px 12px;
+			border: 1px solid #ddd;
+			border-radius: 6px;
+			outline: none;
+			transition: border-color 0.15s;
+		}
+
+		#compose input:focus { border-color: #888; }
+
+		#author { width: 120px; flex-shrink: 0; }
+		#body   { flex: 1; }
+
+		#compose button {
+			padding: 8px 18px;
+			background: #1a1a1a;
+			color: #fff;
+			border: none;
+			border-radius: 6px;
+			font-size: 15px;
+			cursor: pointer;
+			transition: background 0.15s;
+			flex-shrink: 0;
+		}
+
+		#compose button:hover { background: #333; }
+		#compose button:disabled { background: #999; cursor: default; }
+
+		#empty {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: #aaa;
+			font-size: 15px;
+		}
+	</style>
+</head>
+<body>
+	<header>Edge Chat<span>powered by Durable Objects</span></header>
+	<div id="messages"><div id="empty">No messages yet. Say something!</div></div>
+	<form id="compose" autocomplete="off">
+		<input id="author" type="text" placeholder="Name" maxlength="64" required>
+		<input id="body" type="text" placeholder="Message…" maxlength="1000" required>
+		<button type="submit">Send</button>
+	</form>
+
+	<script>
+		const messagesEl = document.getElementById("messages");
+		const emptyEl = document.getElementById("empty");
+		const authorEl = document.getElementById("author");
+		const bodyEl = document.getElementById("body");
+		const form = document.getElementById("compose");
+
+		let knownIds = new Set();
+
+		// Restore saved name.
+		authorEl.value = localStorage.getItem("chat_author") || "";
+		authorEl.addEventListener("input", () => {
+			localStorage.setItem("chat_author", authorEl.value);
+		});
+
+		function relativeTime(iso) {
+			const seconds = Math.floor((Date.now() - new Date(iso + "Z").getTime()) / 1000);
+			if (seconds < 5)  return "just now";
+			if (seconds < 60) return seconds + "s ago";
+			const minutes = Math.floor(seconds / 60);
+			if (minutes < 60) return minutes + "m ago";
+			const hours = Math.floor(minutes / 60);
+			if (hours < 24)   return hours + "h ago";
+			return Math.floor(hours / 24) + "d ago";
+		}
+
+		function renderMessages(messages) {
+			if (!messages.length) return;
+			emptyEl?.remove();
+
+			let shouldScroll = messagesEl.scrollTop + messagesEl.clientHeight >= messagesEl.scrollHeight - 40;
+
+			for (const msg of messages) {
+				if (knownIds.has(msg.id)) continue;
+				knownIds.add(msg.id);
+
+				const div = document.createElement("div");
+				div.className = "msg";
+				div.innerHTML =
+					`<div class="meta"><strong>${esc(msg.author)}</strong> · ${relativeTime(msg.created_at)}</div>` +
+					`<div class="body">${esc(msg.body)}</div>`;
+				messagesEl.appendChild(div);
+			}
+
+			if (shouldScroll) {
+				messagesEl.scrollTop = messagesEl.scrollHeight;
+			}
+		}
+
+		function esc(s) {
+			const d = document.createElement("div");
+			d.textContent = s;
+			return d.innerHTML;
+		}
+
+		async function fetchMessages() {
+			try {
+				const resp = await fetch("/api/messages");
+				if (resp.ok) renderMessages(await resp.json());
+			} catch (_) {}
+		}
+
+		form.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const author = authorEl.value.trim();
+			const body = bodyEl.value.trim();
+			if (!author || !body) return;
+
+			const btn = form.querySelector("button");
+			btn.disabled = true;
+			try {
+				const resp = await fetch("/api/messages", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ author, body }),
 				});
-		</script>
-	</body>
+				if (resp.ok) {
+					renderMessages(await resp.json());
+					bodyEl.value = "";
+				}
+			} finally {
+				btn.disabled = false;
+				bodyEl.focus();
+			}
+		});
+
+		// Initial load + poll.
+		fetchMessages();
+		setInterval(fetchMessages, 2000);
+
+		// Focus message input if name is already set.
+		if (authorEl.value) bodyEl.focus();
+		else authorEl.focus();
+	</script>
+</body>
 </html>
