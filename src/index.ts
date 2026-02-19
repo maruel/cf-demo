@@ -1,65 +1,67 @@
 import { DurableObject } from "cloudflare:workers";
 
-/**
- * Welcome to Cloudflare Workers! This is your first Durable Objects application.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your Durable Object in action
- * - Run `npm run deploy` to publish your application
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/durable-objects
- */
+type Message = {
+	id: number;
+	author: string;
+	body: string;
+	created_at: string;
+};
 
-
-/** A Durable Object's behavior is defined in an exported Javascript class */
 export class MyDurableObject extends DurableObject {
-	/**
-	 * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
-	 * 	`DurableObjectStub::get` for a given identifier (no-op constructors can be omitted)
-	 *
-	 * @param ctx - The interface for interacting with Durable Object state
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 */
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
+		ctx.storage.sql.exec(`
+			CREATE TABLE IF NOT EXISTS messages (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				author TEXT NOT NULL,
+				body TEXT NOT NULL,
+				created_at TEXT NOT NULL DEFAULT (datetime('now'))
+			)
+		`);
 	}
 
-	/**
-	 * The Durable Object exposes an RPC method sayHello which will be invoked when a Durable
-	 *  Object instance receives a request from a Worker via the same method invocation on the stub
-	 *
-	 * @param name - The name provided to a Durable Object instance from a Worker
-	 * @returns The greeting to be sent back to the Worker
-	 */
-	async sayHello(name: string): Promise<string> {
-		return `Hello, ${name}!`;
+	async getMessages(): Promise<Message[]> {
+		return this.ctx.storage.sql
+			.exec<Message>("SELECT id, author, body, created_at FROM messages ORDER BY id DESC LIMIT 50")
+			.toArray()
+			.reverse();
+	}
+
+	async postMessage(author: string, body: string): Promise<Message[]> {
+		this.ctx.storage.sql.exec(
+			"INSERT INTO messages (author, body) VALUES (?, ?)",
+			author,
+			body,
+		);
+		return this.getMessages();
 	}
 }
 
 export default {
-	/**
-	 * This is the standard fetch handler for a Cloudflare Worker
-	 *
-	 * @param request - The request submitted to the Worker from the client
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 * @param ctx - The execution context of the Worker
-	 * @returns The response to be sent back to the client
-	 */
-	async fetch(request, env, ctx): Promise<Response> {
-		// Create a stub to open a communication channel with the Durable Object
-		// instance named "foo".
-		//
-		// Requests from all Workers to the Durable Object instance named "foo"
-		// will go to a single remote Durable Object instance.
-		const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+	async fetch(request, env, _ctx): Promise<Response> {
+		const url = new URL(request.url);
 
-		// Call the `sayHello()` RPC method on the stub to invoke the method on
-		// the remote Durable Object instance.
-		const greeting = await stub.sayHello("world");
+		if (url.pathname === "/api/messages") {
+			const stub = env.MY_DURABLE_OBJECT.getByName("chat");
 
-		return new Response(greeting);
+			if (request.method === "GET") {
+				const messages = await stub.getMessages();
+				return Response.json(messages);
+			}
+
+			if (request.method === "POST") {
+				const { author, body } = await request.json<{ author: string; body: string }>();
+				if (!author || !body) {
+					return Response.json({ error: "author and body required" }, { status: 400 });
+				}
+				const messages = await stub.postMessage(author.slice(0, 64), body.slice(0, 1000));
+				return Response.json(messages);
+			}
+
+			return new Response("Method not allowed", { status: 405 });
+		}
+
+		// Fall through to static assets (configured in wrangler.jsonc)
+		return new Response("Not found", { status: 404 });
 	},
 } satisfies ExportedHandler<Env>;
