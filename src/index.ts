@@ -10,6 +10,10 @@ type Message = {
 	created_at: string;
 };
 
+type WsServerMessage =
+	| { type: "version"; version: string }
+	| { type: "messages"; data: Message[] };
+
 export class MyDurableObject extends DurableObject {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
@@ -36,7 +40,51 @@ export class MyDurableObject extends DurableObject {
 			author,
 			body,
 		);
-		return this.getMessages();
+		const messages = await this.getMessages();
+		this.broadcast({ type: "messages", data: messages });
+		return messages;
+	}
+
+	async fetch(request: Request): Promise<Response> {
+		const upgradeHeader = request.headers.get("Upgrade");
+		if (upgradeHeader !== "websocket") {
+			return new Response("Expected WebSocket upgrade", { status: 426 });
+		}
+
+		const pair = new WebSocketPair();
+		this.ctx.acceptWebSocket(pair[1]);
+
+		const versionMsg: WsServerMessage = { type: "version", version: BUILD_VERSION };
+		pair[1].send(JSON.stringify(versionMsg));
+
+		const messages = await this.getMessages();
+		const messagesMsg: WsServerMessage = { type: "messages", data: messages };
+		pair[1].send(JSON.stringify(messagesMsg));
+
+		return new Response(null, { status: 101, webSocket: pair[0] });
+	}
+
+	private broadcast(msg: WsServerMessage): void {
+		const payload = JSON.stringify(msg);
+		for (const ws of this.ctx.getWebSockets()) {
+			try {
+				ws.send(payload);
+			} catch (_) {
+				// Socket already closed; hibernation API will clean it up.
+			}
+		}
+	}
+
+	webSocketMessage(_ws: WebSocket, _message: string | ArrayBuffer): void {
+		// Server-push only; ignore client messages.
+	}
+
+	webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): void {
+		ws.close();
+	}
+
+	webSocketError(ws: WebSocket, _error: unknown): void {
+		ws.close();
 	}
 }
 
@@ -46,6 +94,11 @@ export default {
 
 		if (url.pathname === "/api/version") {
 			return Response.json({ version: BUILD_VERSION });
+		}
+
+		if (url.pathname === "/api/ws") {
+			const stub = env.MY_DURABLE_OBJECT.getByName("chat");
+			return stub.fetch(request);
 		}
 
 		if (url.pathname === "/api/messages") {
