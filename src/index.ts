@@ -1,5 +1,8 @@
 import { DurableObject } from "cloudflare:workers";
 
+// Set at build time by wrangler's `define` config; falls back for local dev.
+declare const BUILD_VERSION: string;
+
 type Message = {
 	id: number;
 	author: string;
@@ -40,6 +43,10 @@ export class MyDurableObject extends DurableObject {
 export default {
 	async fetch(request, env, _ctx): Promise<Response> {
 		const url = new URL(request.url);
+
+		if (url.pathname === "/api/version") {
+			return Response.json({ version: BUILD_VERSION });
+		}
 
 		if (url.pathname === "/api/messages") {
 			const stub = env.MY_DURABLE_OBJECT.getByName("chat");

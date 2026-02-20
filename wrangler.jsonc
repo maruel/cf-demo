@@ -30,6 +30,9 @@
 	"observability": {
 		"enabled": true
 	},
+	"define": {
+		"BUILD_VERSION": "\"dev\""
+	},
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
