@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Head outline -->
+  <ellipse cx="100" cy="95" rx="62" ry="72" stroke-width="2.5" fill="none"/>
+
+  <!-- Hair - swept to the right, slightly messy -->
+  <path d="M42 72 C44 42, 65 22, 100 20 C135 18, 158 38, 160 68" stroke-width="2.5" fill="none"/>
+  <path d="M46 65 C50 40, 72 25, 100 23" stroke-width="2"/>
+  <path d="M55 55 C62 38, 80 28, 98 25" stroke-width="1.8"/>
+  <path d="M100 20 C120 19, 142 28, 155 50" stroke-width="2"/>
+  <path d="M108 21 C130 22, 148 35, 157 58" stroke-width="1.8"/>
+  <!-- Hair texture strands -->
+  <path d="M60 50 C68 35, 82 28, 95 25" stroke-width="1.2" opacity="0.6"/>
+  <path d="M115 22 C132 26, 145 38, 152 52" stroke-width="1.2" opacity="0.6"/>
+
+  <!-- Eyebrows - natural, slightly arched -->
+  <path d="M68 72 C75 68, 86 68, 92 71" stroke-width="2.2"/>
+  <path d="M108 71 C114 68, 125 68, 132 72" stroke-width="2.2"/>
+
+  <!-- Eyes - friendly, slightly squinting from smile -->
+  <path d="M72 82 C78 78, 88 78, 92 82" stroke-width="1.8"/>
+  <circle cx="82" cy="82" r="2.5" fill="#000" stroke="none"/>
+  <path d="M108 82 C112 78, 122 78, 128 82" stroke-width="1.8"/>
+  <circle cx="118" cy="82" r="2.5" fill="#000" stroke="none"/>
+  <!-- Crow's feet from smiling -->
+  <path d="M92 80 C95 78, 96 80" stroke-width="1" opacity="0.4"/>
+  <path d="M108 80 C105 78, 104 80" stroke-width="1" opacity="0.4"/>
+
+  <!-- Nose -->
+  <path d="M98 82 C96 92, 94 100, 92 105" stroke-width="1.6"/>
+  <path d="M92 105 C96 108, 104 108, 108 105" stroke-width="1.6"/>
+
+  <!-- Smile - wide, open, showing teeth -->
+  <path d="M74 118 C82 130, 96 135, 100 135 C104 135, 118 130, 126 118" stroke-width="2.2"/>
+  <!-- Upper lip line -->
+  <path d="M80 120 C88 117, 96 116, 100 116 C104 116, 112 117, 120 120" stroke-width="1.4"/>
+  <!-- Teeth line -->
+  <path d="M82 120 C90 124, 110 124, 118 120" stroke-width="1" opacity="0.3"/>
+
+  <!-- Stubble dots around jaw and chin -->
+  <circle cx="72" cy="125" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="76" cy="130" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="80" cy="134" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="85" cy="138" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="90" cy="142" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="95" cy="145" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="100" cy="146" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="105" cy="145" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="110" cy="142" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="115" cy="138" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="120" cy="134" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="124" cy="130" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <circle cx="128" cy="125" r="0.7" fill="#000" stroke="none" opacity="0.25"/>
+  <!-- More stubble texture -->
+  <circle cx="74" cy="128" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+  <circle cx="83" cy="136" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+  <circle cx="92" cy="143" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+  <circle cx="100" cy="148" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+  <circle cx="108" cy="143" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+  <circle cx="117" cy="136" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+  <circle cx="126" cy="128" r="0.6" fill="#000" stroke="none" opacity="0.2"/>
+
+  <!-- Ears -->
+  <path d="M38 80 C32 82, 30 92, 34 100 C36 104, 38 104, 40 100" stroke-width="1.8"/>
+  <path d="M162 80 C168 82, 170 92, 166 100 C164 104, 162 104, 160 100" stroke-width="1.8"/>
+
+  <!-- Neck -->
+  <path d="M80 160 C82 170, 84 180, 84 190" stroke-width="2"/>
+  <path d="M120 160 C118 170, 116 180, 116 190" stroke-width="2"/>
+
+  <!-- T-shirt collar - crew neck -->
+  <path d="M55 210 C60 195, 75 188, 84 190 C90 192, 95 196, 100 198 C105 196, 110 192, 116 190 C125 188, 140 195, 145 210" stroke-width="2.2"/>
+
+  <!-- Shoulders -->
+  <path d="M55 210 C40 215, 20 220, 10 230" stroke-width="2.5"/>
+  <path d="M145 210 C160 215, 180 220, 190 230" stroke-width="2.5"/>
+</svg>
