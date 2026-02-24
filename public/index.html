@@ -15,17 +15,6 @@
 			height: 100dvh;
 			display: flex;
 			flex-direction: column;
-			position: relative;
-		}
-
-		body::before {
-			content: "";
-			position: fixed;
-			inset: 0;
-			background: url("/portrait.svg") center center / 120px auto no-repeat;
-			opacity: 0.06;
-			pointer-events: none;
-			z-index: 0;
 		}
 
 		header {
@@ -35,8 +24,6 @@
 			font-size: 18px;
 			font-weight: 600;
 			letter-spacing: -0.02em;
-			position: relative;
-			z-index: 1;
 		}
 
 		header span { color: #888; font-weight: 400; font-size: 14px; margin-left: 8px; }
@@ -48,8 +35,6 @@
 			display: flex;
 			flex-direction: column;
 			gap: 8px;
-			position: relative;
-			z-index: 1;
 		}
 
 		.msg {
@@ -91,8 +76,6 @@
 			display: flex;
 			gap: 8px;
 			align-items: center;
-			position: relative;
-			z-index: 1;
 		}
 
 		#compose input {
